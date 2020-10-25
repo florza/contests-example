@@ -113,7 +113,7 @@ export default new Vuex.Store({
     loadContests ({ commit }) {
       commit('setLoadstateContests', 'loading')
       console.log('Start loading Contests')
-      Vue.secured.get('/api/v1/contests') // ?sort=-last_action_at
+      Vue.$axios.get('/api/v1/contests') // ?sort=-last_action_at
         .then(response => {
           commit('setAllContests', response.data.data)
           commit('setLoadstateContests', 'loaded')
@@ -136,7 +136,7 @@ export default new Vuex.Store({
       commit('setLoadstateCurrentContest', 'loading')
       console.log('Start loading current Contest')
       const id = this.getters.allContests[0].id
-      Vue.secured.get(
+      Vue.$axios.get(
         `/api/v1/contests/${id}?include=participants,matches`)
         .then(response => {
           commit('setCurrentContest', response.data.data)
@@ -159,7 +159,7 @@ export default new Vuex.Store({
         commit('setLoadstateParticipants', 'loading')
         console.log('Start loading Participants')
         const id = this.getters.currentContest.id
-        Vue.secured.get(`/api/v1/contests/${id}/participants`)
+        Vue.$axios.get(`/api/v1/contests/${id}/participants`)
           .then(response => {
             commit('setParticipants', response.data.data)
             commit('setLoadstateParticipants', 'loaded')
@@ -178,7 +178,7 @@ export default new Vuex.Store({
         commit('setLoadstateMatches', 'loading')
         console.log('Start loading Matches')
         const id = this.getters.currentContest.id
-        Vue.secured.get(`/api/v1/contests/${id}/matches`)
+        Vue.$axios.get(`/api/v1/contests/${id}/matches`)
           .then(response => {
             commit('setMatches', response.data.data)
             commit('setLoadstateMatches', 'loaded')
@@ -197,7 +197,7 @@ export default new Vuex.Store({
         // commit('setLoadstateMatches', 'loading')
         console.log('Start loading empty draw')
         const id = this.getters.currentContest.id
-        Vue.secured.get(`/api/v1/contests/${id}/draw`,
+        Vue.$axios.get(`/api/v1/contests/${id}/draw`,
           { params: params })
           .then(response => {
             commit('setEmptyDraw', response.data.data)

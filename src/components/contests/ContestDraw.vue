@@ -398,7 +398,7 @@ export default {
     removeDraw () {
       const path = `/api/v1/contests/${this.currentContest.id}/draw`
       this.callAxiosDelete(path, 'delete', 'Draw')
-      this.drawTableau = this.drawTableau.map([])
+      this.drawTableau = this.drawTableau.map(() => [])
     },
     createDraw () {
       const tableau = this.drawTableau.map(g => g.map(this.getTableauPos))
@@ -413,12 +413,12 @@ export default {
       if (this.drawTableau.length === 0 || this.drawTableau[0].length === 0) {
         if (this.currentContest.ctype_params &&
             this.currentContest.ctype_params['draw_tableau']) {
-          tableau = this.currentContest.ctype_params['draw_tableau'].map([])
+          tableau = this.currentContest.ctype_params['draw_tableau'].map(() => [])
         } else {
           tableau = [[]]
         }
       } else {
-        tableau = this.drawTableau.map([])
+        tableau = this.drawTableau.map(() => [])
       }
       return { draw: { draw_tableau: tableau } }
     },

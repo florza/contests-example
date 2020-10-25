@@ -48,34 +48,29 @@ export const apiMixins = {
 
     // Axios methods for sign up, sign in, sign out
     callAxiosSignInUp (path, data) {
-      this.plain.post(path, data)
+      this.$axios.post(path, data)
         .then(response => this.signInUpSuccessful(response, path))
         .catch(error => this.signInUpFailed(error, path))
     },
     callAxiosSignout (path) {
-      this.callAxiosAPI(this.plain.delete, path)
+      this.callAxiosAPI(this.axios.delete, path)
     },
     signInUpSuccessful (response, path) {
-      if (!response.data.csrf) {
+      if (!response.data.auth) {
         this.signinFailed(response)
         return
       }
-      localStorage.csrf = response.data.csrf
       localStorage.auth = response.data.auth
       localStorage.signedIn = true
       localStorage.signinType = response.data.signin_type
       localStorage.signinData = JSON.stringify(response.data.signin_data)
-      this.secured.defaults.headers.common['X_CSRF_TOKEN'] = response.data.csrf
-      this.secured.defaults.headers.common['Authorization'] = response.data.auth
+      this.$axios.defaults.headers.common['Authorization'] = response.data.auth
 
-      console.log('CSRF after Signup', localStorage.csrf)
-      console.log('AUTH after Signup', localStorage.auth)
       this.errors = []
       this.$store.commit('deleteAll')
       this.$router.replace(path === '/signin' ? '/contest' : '/contests')
     },
     signInUpFailed (error, path) {
-      delete localStorage.csrf
       delete localStorage.auth
       delete localStorage.signedIn
       delete localStorage.signinType
@@ -94,17 +89,17 @@ export const apiMixins = {
     // Axios methods for data manipulations (post, patch, delete)
     callAxiosAdd (path, action, object, editedObject = null,
       data = undefined, loadstate = '') {
-      this.callAxiosAPI(this.secured.post,
+      this.callAxiosAPI(this.$axios.post,
         path, action, object, editedObject, data, loadstate)
     },
     callAxiosDelete (path, action, object, editedObject = null,
       loadstate = '') {
-      this.callAxiosAPI(this.secured.delete,
+      this.callAxiosAPI(this.$axios.delete,
         path, action, object, editedObject, loadstate)
     },
     callAxiosUpdate (path, action, object, editedObject = null,
       data = undefined, loadstate = '') {
-      this.callAxiosAPI(this.secured.patch,
+      this.callAxiosAPI(this.$axios.patch,
         path, action, object, editedObject, data, loadstate)
     },
     callAxiosAPI (axiosFunction, path, action, object, editedObject,
@@ -112,8 +107,8 @@ export const apiMixins = {
       console.log(`Start ${action} ${object}`)
       this.$store.commit('setLoadstate', loadstate || `${action} ${object}...`)
       return (
-        axiosFunction(path, this.to_jsonapi(path, data), { headers: { 'X-CSRF-TOKEN': localStorage.csrf,
-        'Authorization': localStorage.auth } })
+        axiosFunction(path, this.to_jsonapi(path, data),
+          { headers: { 'Authorization': localStorage.auth } })
           .then(() => {
             console.log(`Succesfully finished ${action} ${object}`)
             if (object === 'Contest') {

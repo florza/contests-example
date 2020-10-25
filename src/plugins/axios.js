@@ -1,15 +1,10 @@
 "use strict";
 
 import Vue from 'vue';
-import axios from "axios";
+import axios from 'axios';
 
-const API_URL = 'http://192.168.1.105:3000'
+const API_URL = process.env.VUE_APP_ITURNIER_BACKEND_API_URL
 // const API_URL = 'https://damp-beyond-02296.herokuapp.com'
-
-// Full config:  https://github.com/axios/axios#request-config
-// axios.defaults.baseURL = process.env.baseURL || process.env.apiUrl || '';
-// axios.defaults.headers.common['Authorization'] = AUTH_TOKEN;
-// axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
 
 const config = {
   baseURL: API_URL,
@@ -20,51 +15,29 @@ const config = {
   }
 }
 
-const plainAxiosInstance = axios.create(config);
-const securedAxiosInstance = axios.create(config);
-
-securedAxiosInstance.interceptors.request.use(config => {
-  const method = config.method.toUpperCase()
-  if (method !== 'OPTIONS' && method !== 'GET') {
-    config.headers = {
-      ...config.headers,
-      'X-CSRF-TOKEN': localStorage.csrf,
-      'Authorization': localStorage.auth
-    }
-    console.log('Headers: ', config.headers)
-  }
-  return config
-})
-// _axios.interceptors.request.use(
-//   function(config) {
-//     // Do something before request is sent
-//     return config;
-//   },
-//   function(error) {
-//     // Do something with request error
-//     return Promise.reject(error);
-//   }
-// );
+const _axios = axios.create(config);
 
 // Add a response interceptor
-securedAxiosInstance.interceptors.response.use(null, error => {
+_axios.interceptors.response.use(null, error => {
   if (error.response && error.response.config && error.response.status === 401) {
     // If 401 by expired access cookie, we do a refresh request
-    return plainAxiosInstance.post('/refresh', {},
-      { headers: {
-          'X-CSRF-TOKEN': localStorage.csrf,
-          'Authorization': localStorage.auth } })
+    console.log('Token timed out, start refresh of token')
+    return _axios.post('/refresh', {},
+      { headers: { 'Authorization': localStorage.auth } })
       .then(response => {
-        localStorage.csrf = response.data.csrf
+        console.log('Token successfully refreshed, retry original request')
+        localStorage.auth = response.data.auth
         localStorage.signedIn = true
         // After another successfull refresh - repeat original request
         const retryConfig = error.response.config
-        retryConfig.headers['X-CSRF-TOKEN'] = localStorage.csrf
         retryConfig.headers['Authorization'] = localStorage.auth
-        return plainAxiosInstance.request(retryConfig)
+        return _axios.request(retryConfig)
       }).catch(error => {
-        delete localStorage.csrf
+        console.log('Token refresh failed, logged out')
+        delete localStorage.auth
         delete localStorage.signedIn
+        delete localStorage.signinType
+        delete localStorage.signinData
         // redirect to signin if refresh fails
         location.replace('/')
         return Promise.reject(error)
@@ -73,30 +46,19 @@ securedAxiosInstance.interceptors.response.use(null, error => {
     return Promise.reject(error)
   }
 })
-// _axios.interceptors.response.use(
-//   function(response) {
-//     // Do something with response data
-//     return response;
-//   },
-//   function(error) {
-//     // Do something with response error
-//     return Promise.reject(error);
-//   }
-// );
 
 Plugin.install = function(Vue) {
-  Vue.plain = plainAxiosInstance
-  Vue.secured = securedAxiosInstance
-  window.axios = securedAxiosInstance
+  Vue.$axios = _axios
+  window.axios = _axios
   Object.defineProperties(Vue.prototype, {
-    plain: {
+    axios: {
       get() {
-        return plainAxiosInstance;
+        return _axios;
       }
     },
-    secured: {
+    $axios: {
       get() {
-        return securedAxiosInstance;
+        return _axios;
       }
     }
   })
@@ -105,6 +67,3 @@ Plugin.install = function(Vue) {
 Vue.use(Plugin)
 
 export default Plugin;
-
-
-// export { securedAxiosInstance, plainAxiosInstance }

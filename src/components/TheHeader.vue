@@ -66,12 +66,13 @@ export default {
       return localStorage.signedIn
     },
     signOut () {
-      this.secured.delete('/signin')
+      this.$axios.delete('/signin')
         .then(() => {
-          delete localStorage.csrf
+          delete localStorage.auth
           delete localStorage.signedIn
           delete localStorage.signinType
           delete localStorage.signinData
+          delete this.$axios.defaults.headers.common['Authorization']
           this.$router.replace('/')
         })
         .catch(error => this.setError(error, 'Cannot sign out'))

@@ -1,7 +1,7 @@
 # it2front
 
 A Vue.js front-end app as Proof of Concept for a new Ruby on Rails backend app.
-This project is clone of iturnier2frontend that has been set up from scratch with Vue CLI in order to get a up-to-date configuration with no unnecessary dependencies.
+This project is an adapted copy of iturnier2frontend that has been set up from scratch with Vue CLI in order to get a up-to-date configuration with no unnecessary dependencies.
 
 ## Open tasks
 - Set the number of seeds in draws
@@ -11,7 +11,9 @@ This project is clone of iturnier2frontend that has been set up from scratch wit
 - "Loading display" with slot <table-busy> (see BootstrapyVue Doku)
 
 ## Recent tasks
-- Reading contest in one API-call, including participants and matches
+- Authorization with access token, no more cookies and csrf tokens
+- Adaptions to new versions of packages, only one axios instance
+- Reading all data of one contest in one API-call, including participants and matches
 - Params and results of API calls to backend in JSON-API format
 - Show in page header if connected to Heroku
 - Vue-Bootstrap-DateTime-Picker for match.planned_at, show planned_at with time in all views

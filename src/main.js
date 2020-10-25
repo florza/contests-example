@@ -25,9 +25,6 @@ import 'mutationobserver-shim'
 import Vue from 'vue'
 
 import './plugins/axios'
-// import { securedAxiosInstance, plainAxiosInstance } from './plugins/axios'
-// import VueAxios from 'vue-axios'
-
 import './plugins/bootstrap-vue'
 import './plugins/fontawesome'
 
@@ -43,11 +40,6 @@ import BaseMessages from '@/components/BaseMessages.vue'
 
 Vue.config.productionTip = false
 
-// Vue.use(VueAxios, {
-//   secured: securedAxiosInstance,
-//   plain: plainAxiosInstance
-// })
-
 Vue.component('base-messages', BaseMessages)
 Vue.component('date-picker', datePicker)
 
@@ -56,7 +48,6 @@ new Vue({
   el: '#app',
   router,
   store,
-  // $axios,
   components: { App },
   template: '<App/>',
   render: h => h(App)

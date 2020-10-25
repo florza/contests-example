@@ -36,7 +36,7 @@ export default {
     componentText () {
       let text = `Component: ${this.$parent.$options.name}`
       if (text.includes('Page') &&
-        this.secured.defaults.baseURL.includes('heroku')) {
+        this.$axios.defaults.baseURL.includes('heroku')) {
         text += ' on Heroku'
       }
       return text
