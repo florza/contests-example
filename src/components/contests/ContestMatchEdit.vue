@@ -197,15 +197,19 @@ export default {
     },
     getEditedData () {
       const score = this.prepareScoreForSave()
+      let editedResult = null
+      if (this.editedObject.winner_id !== null) {
+        editedResult = {
+          score_p1: score[0],
+          score_p2: score[1],
+          walk_over: this.editedObject.result.walk_over || false,
+          lucky_loser: this.editedObject.result.lucky_loser || false
+        }
+      }
       const data = {
         match: {
           planned_at: this.editedObject.planned_at,
-          result: {
-            score_p1: score[0],
-            score_p2: score[1],
-            walk_over: this.editedObject.result.walk_over || false,
-            lucky_loser: this.editedObject.result.lucky_loser || false
-          },
+          result: editedResult,
           winner_id: this.editedObject.winner_id
         }
       }

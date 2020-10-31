@@ -5,12 +5,16 @@ This project is an adapted copy of iturnier2frontend that has been set up from s
 
 ## Open tasks
 - Set the number of seeds in draws
+- Disallow some changes in running contests
 - In-Place-Editing for participants and contests, e.g. https://cukikt0302.github.io/vue-simple-table/index.html
 - More adaptions for small screens
 - URLs with ContestId
 - "Loading display" with slot <table-busy> (see BootstrapyVue Doku)
 
 ## Recent tasks
+- Change site title to 'ContestsOrganizer [on Heroku]'
+- Correct an error in axios.js with lead to a loop, if a refresh request was not successful
+- Replaced logic to decide if a match is editable (ppants known, no following result) by the read-only attribute match.editable which is sent from the backend
 - Authorization with access token, no more cookies and csrf tokens
 - Adaptions to new versions of packages, only one axios instance
 - Reading all data of one contest in one API-call, including participants and matches

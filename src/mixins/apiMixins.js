@@ -53,11 +53,11 @@ export const apiMixins = {
         .catch(error => this.signInUpFailed(error, path))
     },
     callAxiosSignout (path) {
-      this.callAxiosAPI(this.axios.delete, path)
+      this.callAxiosAPI(this.$axios.delete, path)
     },
     signInUpSuccessful (response, path) {
       if (!response.data.auth) {
-        this.signinFailed(response)
+        this.signInUpFailed(response)
         return
       }
       localStorage.auth = response.data.auth

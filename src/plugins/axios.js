@@ -19,11 +19,10 @@ const _axios = axios.create(config);
 
 // Add a response interceptor
 _axios.interceptors.response.use(null, error => {
-  if (error.response && error.response.config && error.response.status === 401) {
+  if (error.response && error.response.config && error.response.status === 401 && localStorage.auth && !error.request.responseURL.includes('refresh')) {
     // If 401 by expired access cookie, we do a refresh request
-    console.log('Token timed out, start refresh of token')
-    return _axios.post('/refresh', {},
-      { headers: { 'Authorization': localStorage.auth } })
+    console.warn('Token timed out, start refresh of token')
+    return _axios.post('/refresh', {})
       .then(response => {
         console.log('Token successfully refreshed, retry original request')
         localStorage.auth = response.data.auth
@@ -31,9 +30,11 @@ _axios.interceptors.response.use(null, error => {
         // After another successfull refresh - repeat original request
         const retryConfig = error.response.config
         retryConfig.headers['Authorization'] = localStorage.auth
+        _axios.defaults.headers.common['Authorization'] = localStorage.auth
         return _axios.request(retryConfig)
-      }).catch(error => {
-        console.log('Token refresh failed, logged out')
+      })
+      .catch(error => {
+        console.error('Token refresh failed, logged out')
         delete localStorage.auth
         delete localStorage.signedIn
         delete localStorage.signinType

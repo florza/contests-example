@@ -21,7 +21,7 @@
     </b-nav>
     <div>
       <b-link href="/" >
-        <h1>iTurnier II</h1>
+        <h1>{{ titleText }}</h1>
       </b-link>
     </div>
   </div>
@@ -38,7 +38,7 @@ export default {
   },
   computed: {
     signinName () {
-      if (localStorage.signedIn) {
+      if (this.signedIn) {
         const data = JSON.parse(localStorage.signinData)
         if (localStorage.signinType === 'user') {
           return data.username
@@ -59,6 +59,13 @@ export default {
         return 'loading contest data...'
       }
       return ''
+    },
+    titleText () {
+      let text = 'ContestsOrganizer'
+      if (this.$axios.defaults.baseURL.includes('heroku')) {
+        text += ' on Heroku'
+      }
+      return text
     }
   },
   methods: {

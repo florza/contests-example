@@ -33,7 +33,7 @@
                   }"
                 >
                   <div v-if="setActualTableauPos(group, grp + 1, row, rowspan)">
-                    <div v-if="actualTableauPos.edit">
+                    <div v-if="actualTableauPos.editable">
                       <b-link
                         v-on:click="editedObject = getMatchByRowSpan(group, grp + 1, row, rowspan)"
                         variant="success"
@@ -100,7 +100,7 @@ export default {
       return r
     },
     setActualTableauPos (group, groupNr, row, rowspan) {
-      let tableau = { text: '', edit: false }
+      let tableau = { text: '', editable: false }
       if (rowspan === 1 && row % 2 === 0) {
         // first column, above: participant name or 'BYE'
         tableau.text = this.getParticipantByPos(groupNr, row / 2 + 1)
@@ -113,17 +113,15 @@ export default {
           } else if (m.winner_id && this.textBelow(row, rowspan)) {
             // match with result, below: result, evtl. editable
             tableau.text = m.result_1_vs_2
-            let nm = this.getNextMatchByRowSpan(group, groupNr, row, rowspan)
-            tableau.edit = (nm && !nm.winner_id)
+            tableau.editable = m.editable
           } else if (m.planned_at && this.textAbove(row, rowspan)) {
             // match without result but planned_at, above: planned_at
             tableau.text = this.formatDate(m.planned_at)
           } else if (this.textBelow(row, rowspan)) {
-            // match without result, below: edit if participants known
-            if (m.participant_1_id && m.participant_2_id) {
-              tableau.text = 'add'
-              tableau.edit = true
-            }
+            // match without result yet, below: evtl. editable
+            tableau.text = m.editable ? 'add' : ''
+            tableau.editable = m.editable
+
           }
         } else if (rowspan === 2) {
           // column 2, but no match because of a BYE in column 1:
@@ -136,7 +134,7 @@ export default {
           }
         }
       }
-      tableau.edit = tableau.edit && this.userOrWriteToken
+      tableau.editable = tableau.editable && this.userOrWriteToken
       this.actualTableauPos = tableau.text === '' ? null : tableau
       return this.actualTableauPos
     },
