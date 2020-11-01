@@ -4,7 +4,6 @@ import Vue from 'vue';
 import axios from 'axios';
 
 const API_URL = process.env.VUE_APP_ITURNIER_BACKEND_API_URL
-// const API_URL = 'https://damp-beyond-02296.herokuapp.com'
 
 const config = {
   baseURL: API_URL,

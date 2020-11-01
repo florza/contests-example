@@ -61,7 +61,7 @@ export default {
       return ''
     },
     titleText () {
-      let text = 'ContestsOrganizer'
+      let text = 'ContestOrg'
       if (this.$axios.defaults.baseURL.includes('heroku')) {
         text += ' on Heroku'
       }
