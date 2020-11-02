@@ -3,10 +3,8 @@
 import Vue from 'vue';
 import axios from 'axios';
 
-const API_URL = process.env.VUE_APP_ITURNIER_BACKEND_API_URL
-
 const config = {
-  baseURL: API_URL,
+  baseURL: process.env.VUE_APP_ITURNIER_BACKEND_API_URL,
   timeout: 60 * 1000,
   withCredentials: true, // Check cross-site Access-Control
   headers: {
