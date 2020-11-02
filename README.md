@@ -12,7 +12,8 @@ This project is an adapted copy of iturnier2frontend that has been set up from s
 - "Loading display" with slot <table-busy> (see BootstrapyVue Doku)
 
 ## Recent tasks
-- Change site title to 'ContestsOrganizer [on Heroku]'
+- Used express and a server.js file to build static app on Heroku
+- Change site title to 'ContestsOrg [on Heroku]'
 - Correct an error in axios.js with lead to a loop, if a refresh request was not successful
 - Replaced logic to decide if a match is editable (ppants known, no following result) by the read-only attribute match.editable which is sent from the backend
 - Authorization with access token, no more cookies and csrf tokens
