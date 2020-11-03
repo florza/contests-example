@@ -20,12 +20,4 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
-
-# Drafts that don't belong to the final project
-package.json.webpack3
-package.json.webpack4
-package.json.new
-package.json.working
-src/custom.sass
-.package.json.last.icloud
-package.json.last
+*.code-workspace

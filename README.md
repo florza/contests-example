@@ -1,80 +1,26 @@
-# it2front
+# Contests-Example
 
-A Vue.js front-end app as Proof of Concept for a new Ruby on Rails backend app.
-This project is an adapted copy of iturnier2frontend that has been set up from scratch with Vue CLI in order to get a up-to-date configuration with no unnecessary dependencies.
+## Description
+This is a Vue.js app which serves as Proof Of Concept and working example for the simple user-facing front-end of a contest management app which uses the *Contests-Engine* for the more complicated task (see below).
 
-## Open tasks
-- Set the number of seeds in draws
-- Disallow some changes in running contests
-- In-Place-Editing for participants and contests, e.g. https://cukikt0302.github.io/vue-simple-table/index.html
-- More adaptions for small screens
-- URLs with ContestId
-- "Loading display" with slot <table-busy> (see BootstrapyVue Doku)
+The app provides
+- a minimal user handling to register, login, logout and refresh users (contests managers) and their authentication
+- a login for participants of contests with different tokens that give access to read a specific contest or to edit match results of all matches of a contests or of one participants matches
+- forms to manage contest and participants by the contest manager
+- a form to handle complete or partial manual draws and let them be completed by the backend
+- views of the drawn tableau, generated matches and ranking lists
+- a form to add or change the result of matches
 
-## Recent tasks
-- Used express and a server.js file to build static app on Heroku
-- Change site title to 'ContestsOrg [on Heroku]'
-- Correct an error in axios.js with lead to a loop, if a refresh request was not successful
-- Replaced logic to decide if a match is editable (ppants known, no following result) by the read-only attribute match.editable which is sent from the backend
-- Authorization with access token, no more cookies and csrf tokens
-- Adaptions to new versions of packages, only one axios instance
-- Reading all data of one contest in one API-call, including participants and matches
-- Params and results of API calls to backend in JSON-API format
-- Show in page header if connected to Heroku
-- Vue-Bootstrap-DateTime-Picker for match.planned_at, show planned_at with time in all views
-- KO-Tableau
-- Refactored display of 'loading...' and confirmation messages
-- Corrected choice of displaying saved, actual or empty drawTableau
-- Non-standard group sizes and BYE positions are allowed
-- Buttons for larger/smaller group size, with automatic reduction/enlargement of the next possible group to keep the right number of slots
-- Improved draggble handling in Draw
-  - Slots for BYEs and empty places in drawTableau
-  - Entries are swapped within drawTableau, not sorted
-  - BYEs can be moved, too, if the user wants to place them himself
-  - no animation for inserts and the like (but yet no coloring of the actual target position, too)
-- Combined KO and groups draw in a general component to avoid lots of duplication
-- Adapted param-names to backend changes (draw_ instead of grp_/ko_)
-- Adapted rankings to choose columns and sort order depending on ctype
-- First draft of KO draw, with display of BYE positions, buttons to generate and delete a draw
-- Made display of add/edit/delete buttons dependent on the login type (user, read token or write token), show result as a link instead of a button
-- Adapt ranking display to settings, e.g. no tie columns if no tie allowed and no sets when only 1 possible set
-- Overhaul of components structures (pattern for editing pages, base component for messages, more definitions of table cells in fields array instead of template tags)
-- Ranking per group is computed by the backend
-- adapedt Match edit to restructured result (score_p1, score_p2)
-- handling of the information that is now returned after signin, describing the user or the token
-- second login form in signin for authorization with a token, which is then handled the same way as it were a user
-- renamed email to username, as it is now so named in the backend
-- tableau of the groups in 2D
-- refactored match editing into an own component
-- Improved form for result entry with
-  - input fiels for every possible set
-  - winner or tie (if allowed)
-  - walk-over and lucky-loser (will only be used in KO)
-  - input of planned date with date-picker
-- improvements in error handling and display
-- Simple implementation of groups draw that allows almost all inputs, e.g. without controlling equal group sizes
-- Collapseable nav bar instead of pills
+The app does not permanently store any data or manage the flow of the contest. It only displays data and (mostly) simple forms, does some local validations to avoid the round trip over the backend and then sends the necessary requests to the back-end. Its most complicated parts at the moment are the handling of a "draw" form for manually defining a draw by dragging around participants and the display of the "knock-out tableau" with its complicated structure of lines and labels that does not easily fit into rows and columns or a table.
 
+Currently the app supports the following types of contests:
+- Groups (round robin), where the participants in each group play against each other; propagation of group winners in a final group or an elimination round is not yet implemented
+- KO (knock-out or elimination game), where only the winner of each game advances to next round until the final
 
-## Project setup
-```
-npm install
-```
+## Contests-Engine
+Contest-Engine is a site  which is currently being devolopped. It provides a public API to a tournament management back-end system that handles contests, participants, draws, matches and the like for almost any contest (football championships, tennis trophies, billard tournaments and so on). Details can be found at https://github.com/florza/contests-engine.
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+All data of users, contests, participants and matches is stored and retrieved by sending API request to this back-end. Also actions like randomly filling an incomplete draw, creating the matches for each round, propagating the winner of a elimination game to the next round, calculating rankings, propagating group winners to the final group or elimination round and so on are all automatically done by this back-end system when it receives a changed draw or an updated match result.
 
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+## Demo
+The app is running on Heroku at https://contests-example.herokuapp.com to get a first impression. However, this installation is also used by the developer sometimes and no guarantee is given on availability of the app or permanent storage of example data you entered. The app and the database may be overwritten or initialized at any time.
