@@ -76,10 +76,11 @@ export default new Vuex.Store({
       state.currentMatches = matches
     },
     setEmptyDraw (state, drawsdata) {
-      if (drawsdata.type === 'draws') {
-        drawsdata.attributes['id'] = drawsdata.id
+      if (drawsdata.type === 'draw') {
+        state.emptyDraw = drawsdata.attributes.draw_structure
+      } else {
+        state.emptyDraw = null
       }
-      state.emptyDraw = drawsdata.attributes
     },
     setLoadstateContests (state, loadstate) {
       state.loadstateContests = loadstate
@@ -197,8 +198,7 @@ export default new Vuex.Store({
         // commit('setLoadstateMatches', 'loading')
         console.log('Start loading empty draw')
         const id = this.getters.currentContest.id
-        Vue.$axios.get(`/api/v1/contests/${id}/draw`,
-          { params: params })
+        Vue.$axios.get(`/api/v1/contests/${id}/draw`, { params: params })
           .then(response => {
             commit('setEmptyDraw', response.data.data)
             // commit('setLoadstateMatches', 'loaded')

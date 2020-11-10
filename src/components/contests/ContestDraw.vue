@@ -159,9 +159,9 @@ export default {
       immediate: true,
       handler: function (newDraw) {
         if (newDraw) {
-          // console.log('New empty draw', this.emptyDrawTableau)
+          console.log('New empty draw', this.emptyDrawTableau)
           this.setDrawTables()
-          // this.logDrawTableau('New tableau')
+          this.logDrawTableau('New tableau')
         }
       }
     }
@@ -280,7 +280,7 @@ export default {
       let drawItem = {}
       if (pId === 'BYE') {
         drawItem = this.getSpecialDrawItem('BYE', this.DRAWTABLE, groupIndex, posIndex)
-      } else if (pId === '') {
+      } else if (pId === '' || pId === 0) {
         drawItem = this.getSpecialDrawItem('', this.DRAWTABLE, groupIndex, posIndex)
       } else {
         const ppantIndex = this.drawParticipants.findIndex(
@@ -420,7 +420,13 @@ export default {
       } else {
         tableau = this.drawTableau.map(() => [])
       }
-      return { draw: { draw_tableau: tableau } }
+      return {
+        data: {
+          type: "draw",
+          id: this.currentContest.id,
+          attributes: { draw_tableau: tableau }
+        }
+      }
     },
     drawParams () {
       const tableau = this.drawTableau.map(g => g.map(this.getTableauPos))
