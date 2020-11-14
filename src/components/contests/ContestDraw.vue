@@ -9,7 +9,10 @@
       <b-col>
         <div>
           <span>
-            <b-button v-on:click="createDraw" variant="primary">
+            <b-button v-on:click="callConfirmed('save')"
+              variant="primary"
+              v-bind:disabled="currentContest.has_started"
+            >
               {{ drawParticipantsEmpty() ? 'Save draw' : 'Amend draw and save'}}
             </b-button>
           </span>
@@ -39,17 +42,24 @@
         <div v-if="drawTableau[0]">
           <span v-if="currentContestType == 'Groups'">
             <b-button v-on:click="lessGroups"
-              v-bind:class="{ disabled: lessGroupsDisabled() }">
-              -
+              variant="secondary"
+              v-bind:disabled="lessGroupsDisabled()"
+            >
+              <b-icon icon="dash-circle"></b-icon>
             </b-button>
             {{ nbrGroups }} group(s)
             <b-button v-on:click="moreGroups"
-              v-bind:class="{ disabled: moreGroupsDisabled() }">
-              +
+              variant="secondary"
+              v-bind:disabled="moreGroupsDisabled()"
+            >
+              <b-icon icon="plus-circle"></b-icon>
             </b-button>
           </span>
           <span class="float-right">
-            <b-button v-on:click="showDeleteMsg" variant="danger">
+            <b-button v-on:click="callConfirmed('delete')"
+              variant="danger"
+              v-bind:disabled="currentContest.has_started"
+            >
               Delete draw
             </b-button>
             <!--
@@ -74,13 +84,17 @@
                     class="float-right"
                   >
                     <b-button v-on:click="smallerGroup(groupNr - 1)"
-                      v-bind:class="{ disabled: smallerGroupDisabled(groupNr - 1) }">
-                      -
+                      variant="secondary"
+                      v-bind:disabled="smallerGroupDisabled(groupNr - 1)"
+                    >
+                      <b-icon icon="dash-circle"></b-icon>
                     </b-button>
                     {{ drawTableau[groupNr - 1] ? drawTableau[groupNr - 1].length : 0 }}
                     <b-button v-on:click="biggerGroup(groupNr - 1)"
-                      v-bind:class="{ disabled: biggerGroupDisabled(groupNr - 1) }">
-                      +
+                      variant="secondary"
+                      v-bind:disabled="biggerGroupDisabled(groupNr - 1)"
+                    >
+                      <b-icon icon="plus-circle"></b-icon>
                     </b-button>
                   </span>
                 </h5>
@@ -96,11 +110,12 @@
                 v-bind:move="handleMove"
                 @end="handleDragEnd"
               >
-                <b-tr class="item"
+                <b-tr
                   v-for="(pos, dIndex) in drawTableau[groupNr - 1]"
                   v-bind:key="pos.id"
                   v-bind:id="`d-${groupNr - 1}-${dIndex}`"
-                  v-bind:class="{ 'bye': pos.name === 'BYE',
+                  v-bind:class="{ 'item': !currentContest.has_started,
+                                  'bye': pos.name === 'BYE',
                                   'fixed': pos.fixed === true,
                                   'drag-from': pos.id === fromElement.id,
                                   'drag-to': pos.id === toElement.id }"
@@ -309,10 +324,11 @@ export default {
     // Process group changes (number, size)
     //
     moreGroupsDisabled () {
-      return this.nbrGroups >= Math.floor(this.nbrParticipants / 2)
+      return this.currentContest.has_started ||
+        this.nbrGroups >= Math.floor(this.nbrParticipants / 2)
     },
     lessGroupsDisabled () {
-      return this.nbrGroups === 1
+      return this.currentContest.has_started || this.nbrGroups === 1
     },
     moreGroups () {
       if (!this.moreGroupsDisabled()) {
@@ -340,11 +356,13 @@ export default {
       }
     },
     smallerGroupDisabled (group) {
-      return !this.drawTableau[group] ||
+      return this.currentContest.has_started ||
+        !this.drawTableau[group] ||
         this.drawTableau[group].length <= 2
     },
     biggerGroupDisabled (group) {
-      return !this.drawTableau[group] ||
+      return this.currentContest.has_started ||
+        !this.drawTableau[group] ||
         (this.nbrParticipants - this.drawTableau[group].length - 1 <
           (this.drawTableau.length - 1) * 2)
     },
@@ -381,14 +399,22 @@ export default {
     //
     // Process save and delete of draws
     //
-    showDeleteMsg () {
-      this.boxOne = ''
+    callConfirmed (action) {
+      const actions = {
+        'save': { verb: 'replace', func: this.createDraw },
+        'delete': { verb: 'delete', func: this.removeDraw } }
+
+      if (! this.currentContest.has_draw) {
+        actions[action].func()  // no confirmation necessary
+        return
+      }
+      // this.boxOne = ''
       this.$bvModal.msgBoxConfirm(
-        'Do you really want to delete the entire draw? This will also delete all matches!'
+        `Do you really want to ${actions[action].verb} the existing draw? This will also ${actions[action].verb} all current matches!`
       )
         .then(okResponse => {
           if (okResponse) {
-            this.removeDraw()
+            actions[action].func()
           }
         })
         .catch(error => {

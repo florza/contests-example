@@ -39,7 +39,7 @@
           </div>
         </template>
         <template v-slot:cell(result_1_vs_2)="data">
-          <div v-if="userOrWriteToken && data.item.editable">
+          <div v-if="userOrWriteToken && data.item.result_editable">
             <b-link
               v-on:click="editedObject = data.item"
               variant="success"

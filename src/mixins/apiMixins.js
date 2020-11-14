@@ -126,7 +126,7 @@ export const apiMixins = {
             this.errors = []
           })
           .catch(error => {
-            console.log(`Error in ${action} ${object}`, error)
+            console.log(`Error in ${action} ${object}`, error.response.data.errors[0])
             this.$store.commit('setLoadstate', '')
             this.setError(error, `Cannot ${action} ${object}`)
           })

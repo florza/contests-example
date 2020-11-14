@@ -23,7 +23,9 @@
         </b-form-group>
 
         <b-form-group>
-          <b-form-radio-group v-model="editedObject.ctype" plain>
+          <b-form-radio-group v-model="editedObject.ctype" plain
+            v-bind:disabled="editedObject.has_draw"
+          >
             <b-form-radio value="Groups" label="Contesttype" class="mx-2">
               {{ ctype_text('Groups') }}
             </b-form-radio>

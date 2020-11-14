@@ -18,12 +18,18 @@
           </b-link>
         </template>
         <template v-slot:cell(delete)="data">
-           <b-link v-on:click="showDeleteMsg(data.item)">
+           <b-link v-on:click="showDeleteMsg(data.item)"
+            v-bind:disabled="currentContest.has_draw"
+          >
             <b-icon icon="x-circle" scale="2" variant="danger"></b-icon>
           </b-link>
         </template>
       </b-table>
-      <b-button v-on:click="editedObject = {}">Add</b-button>
+      <b-button v-on:click="editedObject = {}"
+        v-bind:disabled="currentContest.has_draw"
+      >
+        Add
+      </b-button>
     </div>
 
     <div v-else>

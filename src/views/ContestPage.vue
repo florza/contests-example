@@ -24,6 +24,7 @@
                   v-for="tab in tabs"
                   v-bind:key="tab"
                   v-bind:active="tabActive(tab)"
+                  v-bind:disabled="tabDisabled(tab)"
                   v-bind:to="tabPath(tab)"
                 >
                   {{ tabName(tab) }}
@@ -116,6 +117,18 @@ export default {
     },
     tabActive (tab) {
       return tab === this.currentTab
+    },
+    tabDisabled (tab) {
+      switch (tab) {
+        case 'draw':
+          return this.currentParticipants.length < 2
+        case 'tableau':
+        case 'matches':
+        case 'ranking':
+          return !this.currentContest.has_draw
+        default:
+          return false;
+      }
     },
     tabPath (tab) {
       return '/contest/' + tab

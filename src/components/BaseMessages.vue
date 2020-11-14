@@ -14,7 +14,7 @@
           {{ loadstateParent }}
         </b-alert>
       </div>
-      <div v-if="errors.length > 0 && page">
+      <div v-if="errors.length > 0 && (page || edit)">
         <b-alert show dismissible variant="danger">
           <div v-for="message in errors" v-bind:key="message">
             {{ message }}
@@ -52,7 +52,7 @@ export default {
       return this.$parent.$options.name.includes('Edit')
     },
     page () {
-      return this.$options.name.includes('Page')
+      return this.$parent.$options.name.includes('Page')
     },
     loadstateParent () {
       return this.$parent.loadstate
