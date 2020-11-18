@@ -16,6 +16,15 @@
               {{ drawParticipantsEmpty() ? 'Save draw' : 'Amend draw and save'}}
             </b-button>
           </span>
+          <span class="float-right">
+            <base-incrementor
+              v-bind:value="nbrSeeds + ' seeds'"
+              v-bind:decrement="lessSeeds"
+              v-bind:increment="moreSeeds"
+              v-bind:decrementDisabled="lessSeedsDisabled()"
+              v-bind:incrementDisabled="moreSeedsDisabled()"
+              ></base-incrementor>
+          </span>
         </div>
         <draggable class="list-group"
           v-model="drawParticipants"
@@ -41,6 +50,7 @@
       <b-col>
         <div v-if="drawTableau[0]">
           <span v-if="currentContestType == 'Groups'">
+            <!--
             <b-button v-on:click="lessGroups"
               variant="secondary"
               v-bind:disabled="lessGroupsDisabled()"
@@ -54,19 +64,27 @@
             >
               <b-icon icon="plus-circle"></b-icon>
             </b-button>
+            -->
+            <base-incrementor
+              v-bind:value="nbrGroups + ' group(s)'"
+              v-bind:decrement="lessGroups"
+              v-bind:increment="moreGroups"
+              v-bind:decrementDisabled="lessGroupsDisabled()"
+              v-bind:incrementDisabled="moreGroupsDisabled()"
+            ></base-incrementor>
           </span>
           <span class="float-right">
+            <!--
+            <b-button v-on:click="saveDraw" variant="primary">
+              Save manual draw
+            </b-button>
+            -->
             <b-button v-on:click="callConfirmed('delete')"
               variant="danger"
               v-bind:disabled="currentContest.has_started"
             >
               Delete draw
             </b-button>
-            <!--
-            <b-button v-on:click="saveDraw" variant="primary">
-              Save manual draw
-            </b-button>
-            -->
           </span>
         </div>
         <div v-for="groupNr in nbrGroups" v-bind:key="groupNr">
@@ -82,7 +100,7 @@
                   </span>
                   <span v-if="currentContestType == 'Groups' && nbrGroups > 1"
                     class="float-right"
-                  >
+                  ><!--
                     <b-button v-on:click="smallerGroup(groupNr - 1)"
                       variant="secondary"
                       v-bind:disabled="smallerGroupDisabled(groupNr - 1)"
@@ -96,6 +114,15 @@
                     >
                       <b-icon icon="plus-circle"></b-icon>
                     </b-button>
+                    -->
+                    <base-incrementor
+                      v-bind:value="drawTableau[groupNr - 1] ? drawTableau[groupNr - 1].length : 0"
+                      v-bind:param="groupNr - 1"
+                      v-bind:decrement="smallerGroup"
+                      v-bind:increment="biggerGroup"
+                      v-bind:decrementDisabled="smallerGroupDisabled(groupNr - 1)"
+                      v-bind:incrementDisabled="biggerGroupDisabled(groupNr - 1)"
+                    ></base-incrementor>
                   </span>
                 </h5>
               </b-th>
@@ -149,6 +176,7 @@ export default {
       nbrParticipants: 0, // total number of participants
       drawTableau: [], // actual draw (right side of screen)
       nbrGroups: 1, // number of groups in drawTableau
+      nbrSeeds: 0,  // number of seeded participants
       fromElement: false, // start element of drag
       toElement: false, // final element of drag
       PPANTSTABLE: 'P', // constant for elements in drawParticipants
@@ -319,6 +347,40 @@ export default {
           p.pos = i
         })
       })
+    },
+    //
+    // Process seed changes (number)
+    //
+    moreSeedsDisabled () {
+      return this.currentContest.has_started ||
+        this.currentContestType == 'KO' ?
+          this.nbrSeeds > Math.floor(this.nbrParticipants / 2) :
+          (this.nbrGroups < 2 || this.nbrSeeds === this.nbrGroups)
+    },
+    lessSeedsDisabled () {
+      return this.currentContest.has_started || this.nbrSeeds === 0
+    },
+    moreSeeds () {
+      if (!this.moreSeedsDisabled()) {
+        if (this.nbrSeeds === 0) {
+          this.nbrSeeds = 2
+        } else  if (this.currentContestType == 'KO') {
+          this.nbrSeeds *= 2
+        } else {
+          this.nbrSeeds += 1
+        }
+      }
+    },
+    lessSeeds () {
+      if (!this.lessSeedsDisabled()) {
+        if (this.nbrSeeds === 2) {
+          this.nbrSeeds = 0
+        } else if (this.currentContestType == 'KO') {
+          this.nbrSeeds /= 2
+        } else {
+          this.nbrSeeds -= 1
+        }
+      }
     },
     //
     // Process group changes (number, size)

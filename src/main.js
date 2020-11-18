@@ -17,10 +17,12 @@ import datePicker from 'vue-bootstrap-datetimepicker'
 import 'pc-bootstrap4-datetimepicker/build/css/bootstrap-datetimepicker.css'
 
 import BaseMessages from '@/components/BaseMessages.vue'
+import BaseIncrementor from '@/components/BaseIncrementor.vue'
 
 Vue.config.productionTip = false
 
 Vue.component('base-messages', BaseMessages)
+Vue.component('base-incrementor', BaseIncrementor)
 Vue.component('date-picker', datePicker)
 
 /* eslint-disable no-new */
