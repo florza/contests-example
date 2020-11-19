@@ -9,14 +9,6 @@
       <b-col>
         <div>
           <span>
-            <b-button v-on:click="callConfirmed('save')"
-              variant="primary"
-              v-bind:disabled="currentContest.has_started"
-            >
-              {{ drawParticipantsEmpty() ? 'Save draw' : 'Amend draw and save'}}
-            </b-button>
-          </span>
-          <span class="float-right">
             <base-incrementor
               v-bind:value="nbrSeeds + ' seeds'"
               v-bind:decrement="lessSeeds"
@@ -25,8 +17,16 @@
               v-bind:incrementDisabled="moreSeedsDisabled()"
               ></base-incrementor>
           </span>
+          <span class="float-right">
+            <b-button v-on:click="callConfirmed('save')"
+              variant="primary"
+              v-bind:disabled="currentContest.has_started"
+            >
+              {{ drawParticipantsEmpty() ? 'Save draw' : 'Create draw'}}
+            </b-button>
+          </span>
         </div>
-        <draggable class="list-group"
+        <draggable class="list-group w-100"
           v-model="drawParticipants"
           draggable=".item"
           group="draw"
@@ -39,7 +39,7 @@
             v-bind:class="{ emptySlot: ppant.pos === -1 }"
             class="item list-group-item"
           >
-            <div>{{ ppant.name }}</div>
+            <div>{{ ppant.name + ppant.seedsuffix }}</div>
           </div>
           <div slot="header" role="group" class="list-group-item">
             <h5>Participants</h5>
@@ -50,21 +50,6 @@
       <b-col>
         <div v-if="drawTableau[0]">
           <span v-if="currentContestType == 'Groups'">
-            <!--
-            <b-button v-on:click="lessGroups"
-              variant="secondary"
-              v-bind:disabled="lessGroupsDisabled()"
-            >
-              <b-icon icon="dash-circle"></b-icon>
-            </b-button>
-            {{ nbrGroups }} group(s)
-            <b-button v-on:click="moreGroups"
-              variant="secondary"
-              v-bind:disabled="moreGroupsDisabled()"
-            >
-              <b-icon icon="plus-circle"></b-icon>
-            </b-button>
-            -->
             <base-incrementor
               v-bind:value="nbrGroups + ' group(s)'"
               v-bind:decrement="lessGroups"
@@ -100,23 +85,9 @@
                   </span>
                   <span v-if="currentContestType == 'Groups' && nbrGroups > 1"
                     class="float-right"
-                  ><!--
-                    <b-button v-on:click="smallerGroup(groupNr - 1)"
-                      variant="secondary"
-                      v-bind:disabled="smallerGroupDisabled(groupNr - 1)"
-                    >
-                      <b-icon icon="dash-circle"></b-icon>
-                    </b-button>
-                    {{ drawTableau[groupNr - 1] ? drawTableau[groupNr - 1].length : 0 }}
-                    <b-button v-on:click="biggerGroup(groupNr - 1)"
-                      variant="secondary"
-                      v-bind:disabled="biggerGroupDisabled(groupNr - 1)"
-                    >
-                      <b-icon icon="plus-circle"></b-icon>
-                    </b-button>
-                    -->
+                  >
                     <base-incrementor
-                      v-bind:value="drawTableau[groupNr - 1] ? drawTableau[groupNr - 1].length : 0"
+                      v-bind:value="String(drawTableau[groupNr - 1] ? drawTableau[groupNr - 1].length : 0)"
                       v-bind:param="groupNr - 1"
                       v-bind:decrement="smallerGroup"
                       v-bind:increment="biggerGroup"
@@ -141,7 +112,8 @@
                   v-for="(pos, dIndex) in drawTableau[groupNr - 1]"
                   v-bind:key="pos.id"
                   v-bind:id="`d-${groupNr - 1}-${dIndex}`"
-                  v-bind:class="{ 'item': !currentContest.has_started,
+                  v-bind:class="{ 'item': nbrSeeds == 0 &&
+                                    !currentContest.has_started,
                                   'bye': pos.name === 'BYE',
                                   'fixed': pos.fixed === true,
                                   'drag-from': pos.id === fromElement.id,
@@ -193,6 +165,7 @@ export default {
       deep: true,
       handler: function (newContest) {
         if (newContest) {
+          this.nbrSeeds = newContest.ctype_params?.draw_seeds?.length || 0
           this.drawTableau = []
           this.$store.dispatch('loadEmptyDraw', this.emptyDrawParams())
         }
@@ -231,6 +204,8 @@ export default {
       this.drawParticipants = this.currentParticipants.map(
         (p, i) => this.getParticipantDrawItem(p, this.PPANTSTABLE, null, i)
       )
+      this.drawParticipants.sort((a, b) =>
+        (a.seed_position || 999) - (b.seed_position || 999))
       this.nbrParticipants = this.currentParticipants.length
     },
     getParticipantDrawItem (pos, table, group, i) {
@@ -240,7 +215,9 @@ export default {
         shortname: pos.shortname,
         table: table,
         group: group,
-        pos: i
+        pos: i,
+        seed: i < this.nbrSeeds ? i + 1 : null,
+        seedsuffix: i < this.nbrSeeds ? ` (${i + 1})` : ''
       }
     },
     // add placeholder participant as target for draggable component
@@ -275,6 +252,12 @@ export default {
       if (ppantPos >= '') {
         this.drawParticipants.splice(ppantPos, 1)
       }
+    },
+    resetParticipantsSeed (nbrSeeds) {
+      this.drawParticipants.forEach(function (p, i) {
+        p.seed = i < nbrSeeds ? i + 1 : null,
+        p.seedsuffix = i < nbrSeeds ? ` (${i + 1})` : ''
+      })
     },
     resetParticipantsPos () {
       this.drawParticipants.forEach(function (p, i) {
@@ -335,7 +318,10 @@ export default {
           this.drawParticipants[ppantIndex],
           this.DRAWTABLE, groupIndex, posIndex
         )
-        this.drawParticipants.splice(ppantIndex, 1)
+        if (this.nbrSeeds === 0) {
+          // With seeds, the participant list is always shown
+          this.drawParticipants.splice(ppantIndex, 1)
+        }
       }
       return drawItem
     },
@@ -369,6 +355,7 @@ export default {
         } else {
           this.nbrSeeds += 1
         }
+        this.setDrawTables()
       }
     },
     lessSeeds () {
@@ -380,6 +367,7 @@ export default {
         } else {
           this.nbrSeeds -= 1
         }
+        this.setDrawTables()
       }
     },
     //
@@ -489,11 +477,9 @@ export default {
       this.drawTableau = this.drawTableau.map(() => [])
     },
     createDraw () {
-      const tableau = this.drawTableau.map(g => g.map(this.getTableauPos))
-      const seeds = []
       const path = `/api/v1/contests/${this.currentContest.id}/draw`
       this.callAxiosAdd(path, 'save', 'Draw', null,
-        { draw: { draw_tableau: tableau, draw_seeds: seeds } },
+        this.drawParams(),
         'Saving draw and creating matches...')
     },
     emptyDrawParams () {
@@ -518,7 +504,10 @@ export default {
     },
     drawParams () {
       const tableau = this.drawTableau.map(g => g.map(this.getTableauPos))
-      const seeds = []
+      let seeds = []
+      for (let index = 0; index < this.nbrSeeds; index++) {
+        seeds.push(Number(this.drawParticipants[index].id))
+      }
       return { draw: { draw_tableau: tableau, draw_seeds: seeds } }
     },
     getTableauPos (p) {
@@ -557,7 +546,9 @@ export default {
       const to = this.toElement
 
       if (!from || !to || (from.table === 'P' && to.table === 'P')) {
-        // Within drawParticipants: default sort handling of draggable
+        // Within drawParticipants: default sort handling of draggable,
+        // except handling of seeds
+        this.resetParticipantsSeed(this.nbrSeeds)
         return
       }
       if (from.table === 'D' && to.table === 'D') {
