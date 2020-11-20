@@ -105,17 +105,18 @@
                 group="draw"
                 filter=".fixed"
                 ghost-class="drag-target"
+                v-bind:disabled="nbrSeeds > 0"
                 v-bind:move="handleMove"
-                @end="handleDragEnd"
+                v-on:end="handleDragEnd"
               >
                 <b-tr
                   v-for="(pos, dIndex) in drawTableau[groupNr - 1]"
                   v-bind:key="pos.id"
                   v-bind:id="`d-${groupNr - 1}-${dIndex}`"
-                  v-bind:class="{ 'item': nbrSeeds == 0 &&
+                  v-bind:class="{ 'item': nbrSeeds === 0 &&
                                     !currentContest.has_started,
                                   'bye': pos.name === 'BYE',
-                                  'fixed': pos.fixed === true,
+                                  'fixed': nbrSeeds > 0 || pos.fixed === true,
                                   'drag-from': pos.id === fromElement.id,
                                   'drag-to': pos.id === toElement.id }"
                 >
@@ -167,6 +168,7 @@ export default {
         if (newContest) {
           this.nbrSeeds = newContest.ctype_params?.draw_seeds?.length || 0
           this.drawTableau = []
+          this.drawParticipants = []
           this.$store.dispatch('loadEmptyDraw', this.emptyDrawParams())
         }
       }
@@ -201,12 +203,14 @@ export default {
     // Process drawParticipants
     //
     setDrawParticipants () {
-      this.drawParticipants = this.currentParticipants.map(
-        (p, i) => this.getParticipantDrawItem(p, this.PPANTSTABLE, null, i)
-      )
-      this.drawParticipants.sort((a, b) =>
-        (a.seed_position || 999) - (b.seed_position || 999))
-      this.nbrParticipants = this.currentParticipants.length
+      if (this.drawParticipants.length === 0) {
+        this.drawParticipants = this.currentParticipants.map(
+          (p, i) => this.getParticipantDrawItem(p, this.PPANTSTABLE, null, i)
+        )
+        this.drawParticipants.sort((a, b) =>
+          (a.seed || 999) - (b.seed || 999))
+        this.nbrParticipants = this.currentParticipants.length
+      }
     },
     getParticipantDrawItem (pos, table, group, i) {
       return {
@@ -216,8 +220,8 @@ export default {
         table: table,
         group: group,
         pos: i,
-        seed: i < this.nbrSeeds ? i + 1 : null,
-        seedsuffix: i < this.nbrSeeds ? ` (${i + 1})` : ''
+        seed: pos.seed_position, // i < this.nbrSeeds ? i + 1 : null,
+        seedsuffix: pos.seed_position ? ` (${pos.seed_position})` : ''
       }
     },
     // add placeholder participant as target for draggable component
@@ -236,7 +240,7 @@ export default {
           this.drawParticipants[0].pos === -1)
     },
     moveItemToParticipants (item, pos = undefined) {
-      if (item.id <= '') {
+      if (item.id <= '' || this.nbrSeeds > 0) {
         return
       }
       if (this.drawParticipantsEmpty()) {
@@ -258,12 +262,15 @@ export default {
         p.seed = i < nbrSeeds ? i + 1 : null,
         p.seedsuffix = i < nbrSeeds ? ` (${i + 1})` : ''
       })
+      return true
     },
-    resetParticipantsPos () {
+    resetParticipantsPos (nbrSeeds) {
       this.drawParticipants.forEach(function (p, i) {
         p.table = 'P'
         p.group = null
         p.pos = p.pos === -1 ? -1 : i
+        p.seed = i < nbrSeeds ? i + 1 : null,
+        p.seedsuffix = i < nbrSeeds ? ` (${i + 1})` : ''
       })
       this.expandEmptyDrawParticipants()
     },
@@ -277,7 +284,8 @@ export default {
         // at start: load actual drawTableau from contest, if it exists
         this._drawTableau = Object.assign([], params.draw_tableau)
       } else {
-        // no saved draw, changed number of groups: use standard empty tableau
+        // no saved draw, changed number of seeds, groups or group size:
+        // use standard empty tableau
         this._drawTableau = Object.assign([], this.emptyDrawTableau)
       }
       this.drawTableau = []
@@ -306,7 +314,7 @@ export default {
       let drawItem = {}
       if (pId === 'BYE') {
         drawItem = this.getSpecialDrawItem('BYE', this.DRAWTABLE, groupIndex, posIndex)
-      } else if (pId === '' || pId === 0) {
+      } else if (pId === '' || pId === 0 || this.nbrSeeds === 0) {
         drawItem = this.getSpecialDrawItem('', this.DRAWTABLE, groupIndex, posIndex)
       } else {
         const ppantIndex = this.drawParticipants.findIndex(
@@ -324,6 +332,17 @@ export default {
         }
       }
       return drawItem
+    },
+    resetDrawTableau () {
+      if (this.nbrSeeds > 2) {
+        this.drawTableau.forEach((g, gi) => {
+          g.forEach((p, pi) => {
+            if (p.name !== 'BYE') {
+              p = this.getSpecialDrawItem('', this.DRAWTABLE, gi, pi)
+            }
+         })
+        })
+      }
     },
     resetDrawTableauPos () {
       this.drawTableau.forEach((group, groupIndex) => {
@@ -355,7 +374,8 @@ export default {
         } else {
           this.nbrSeeds += 1
         }
-        this.setDrawTables()
+        this.resetParticipantsPos(this.nbrSeeds)
+        this.resetDrawTableau()
       }
     },
     lessSeeds () {
@@ -367,7 +387,8 @@ export default {
         } else {
           this.nbrSeeds -= 1
         }
-        this.setDrawTables()
+        this.resetParticipantsPos(this.nbrSeeds)
+        this.resetDrawTableau()
       }
     },
     //
@@ -382,13 +403,7 @@ export default {
     },
     moreGroups () {
       if (!this.moreGroupsDisabled()) {
-        // const newGroup = []
-        // newGroup.push(this.getSpecialDrawItem(
-        //   '', this.DRAWTABLE, this.nbrGroups, 0))
-        // newGroup.push(this.getSpecialDrawItem(
-        //   '', this.DRAWTABLE, this.nbrGroups, 1))
         this.drawTableau.push([])
-        // this.reduceNextPossibleGroup(this.nbrGroups, 2)
         this.nbrGroups += 1
         this.$store.dispatch('loadEmptyDraw', this.emptyDrawParams())
       }
@@ -400,8 +415,11 @@ export default {
           const item = this.drawTableau[this.nbrGroups].shift()
           this.moveItemToParticipants(item)
         }
-        this.resetParticipantsPos()
+        this.resetParticipantsPos(this.nbrSeeds)
         this.drawTableau.pop()
+        if (this.drawTableau.length > this.nbrSeeds) {
+          this.nbrSeeds = this.drawTableau.length
+        }
         this.$store.dispatch('loadEmptyDraw', this.emptyDrawParams())
       }
     },
@@ -420,11 +438,12 @@ export default {
       if (!this.smallerGroupDisabled(group)) {
         const item = this.drawTableau[group].pop()
         this.moveItemToParticipants(item)
-        this.resetParticipantsPos()
+        this.resetParticipantsPos(this.nbrSeeds)
 
         const biggerGroup = (group + 1) % this.nbrGroups
         this.drawTableau[biggerGroup].push(this.getSpecialDrawItem(
           '', this.DRAWTABLE, biggerGroup, this.drawTableau[biggerGroup].length))
+        this.resetDrawTableau()
       }
     },
     biggerGroup (group) {
@@ -432,6 +451,7 @@ export default {
         this.drawTableau[group].push(this.getSpecialDrawItem(
           '', this.DRAWTABLE, group, this.drawTableau[group].length))
         this.reduceNextPossibleGroup(group, 1)
+        this.resetDrawTableau()
       }
     },
     reduceNextPossibleGroup (group, nbr = 1) {
@@ -444,7 +464,7 @@ export default {
           nbr -= 1
         }
       }
-      this.resetParticipantsPos()
+      this.resetParticipantsPos(this.nbrSeeds)
     },
     //
     // Process save and delete of draws
@@ -546,12 +566,8 @@ export default {
       const to = this.toElement
 
       if (!from || !to || (from.table === 'P' && to.table === 'P')) {
-        // Within drawParticipants: default sort handling of draggable,
-        // except handling of seeds
-        this.resetParticipantsSeed(this.nbrSeeds)
-        return
-      }
-      if (from.table === 'D' && to.table === 'D') {
+        // Within drawParticipants: default sort handling of draggable
+      } else if (from.table === 'D' && to.table === 'D') {
         // Within drawTableau: swap instead of move/sort
         const _drawTableau = Object.assign([], this.drawTableau)
         _drawTableau[from.group][from.pos] = to
@@ -575,7 +591,7 @@ export default {
           this.moveItemToParticipants(from, to.pos)
         }
       }
-      this.resetParticipantsPos()
+      this.resetParticipantsPos(this.nbrSeeds)
       this.resetDrawTableauPos()
       this.fromElement = false
       this.toElement = false
