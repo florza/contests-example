@@ -26,7 +26,7 @@
             </b-button>
           </span>
         </div>
-        <draggable class="list-group w-100"
+        <draggable class="list-group w-100 border border-secondary"
           v-model="drawParticipants"
           draggable=".item"
           group="draw"
@@ -39,12 +39,49 @@
             v-bind:class="{ emptySlot: ppant.pos === -1 }"
             class="item list-group-item"
           >
-            <div>{{ ppant.name + ppant.seedsuffix }}</div>
+            <div>{{ ppant.name + (ppant.seed ? ppant.seedsuffix : '') }}</div>
           </div>
           <div slot="header" role="group" class="list-group-item">
             <h5>Participants</h5>
           </div>
         </draggable>
+        <div class="mt-4 bg-primary">
+          <p>
+            Manual (unrestricted) draw:
+            <ul>
+              <li v-if="currentContestType == 'Groups'">
+                Define number and sizes of groups with the +/- buttons
+              <li v-else>
+                Eventually move BYE positions if the given standard position do not fit
+              </li>
+              <li>
+                Drag some or all participants to the desired positions
+              </li>
+              <li>
+                Keep the number of seeds at zero
+              <li>
+                Create a draw which will randomly fill the remaining participants into the empty slots
+              </li>
+            </ul>
+          </p>
+          <p>
+            Seeded draw:
+            <ul>
+              <li v-if="currentContestType == 'Groups'">
+                Define number and sizes of groups with the +/- buttons
+              </li>
+              <li>
+                Define the number of seeds
+              </li>
+              <li>
+                Drag the best participants to their seed positions
+              </li>
+              <li>
+                Create a complete new draw
+              </li>
+            </ul>
+          </p>
+        </div>
       </b-col>
 
       <b-col>
@@ -72,8 +109,11 @@
             </b-button>
           </span>
         </div>
-        <div v-for="groupNr in nbrGroups" v-bind:key="groupNr">
-          <b-table-simple outlined class="mb-5">
+        <div v-for="groupNr in nbrGroups"
+          v-bind:key="groupNr"
+          class="mb-5 border border-secondary"
+        >
+          <b-table-simple outlined class="mb-0">
             <b-thead>
               <b-th colspan="1">
                 <h5>
@@ -203,14 +243,12 @@ export default {
     // Process drawParticipants
     //
     setDrawParticipants () {
-      if (this.drawParticipants.length === 0) {
-        this.drawParticipants = this.currentParticipants.map(
-          (p, i) => this.getParticipantDrawItem(p, this.PPANTSTABLE, null, i)
-        )
-        this.drawParticipants.sort((a, b) =>
-          (a.seed || 999) - (b.seed || 999))
-        this.nbrParticipants = this.currentParticipants.length
-      }
+      this.drawParticipants = this.currentParticipants.map(
+        (p, i) => this.getParticipantDrawItem(p, this.PPANTSTABLE, null, i)
+      )
+      this.drawParticipants.sort((a, b) =>
+        (a.seed || 999) - (b.seed || 999))
+      this.nbrParticipants = this.currentParticipants.length
     },
     getParticipantDrawItem (pos, table, group, i) {
       return {
@@ -314,7 +352,7 @@ export default {
       let drawItem = {}
       if (pId === 'BYE') {
         drawItem = this.getSpecialDrawItem('BYE', this.DRAWTABLE, groupIndex, posIndex)
-      } else if (pId === '' || pId === 0 || this.nbrSeeds === 0) {
+      } else if (pId === '' || pId === 0) {
         drawItem = this.getSpecialDrawItem('', this.DRAWTABLE, groupIndex, posIndex)
       } else {
         const ppantIndex = this.drawParticipants.findIndex(
@@ -334,15 +372,25 @@ export default {
       return drawItem
     },
     resetDrawTableau () {
-      if (this.nbrSeeds > 2) {
-        this.drawTableau.forEach((g, gi) => {
-          g.forEach((p, pi) => {
-            if (p.name !== 'BYE') {
-              p = this.getSpecialDrawItem('', this.DRAWTABLE, gi, pi)
+      if (this.nbrSeeds > 0) {
+        this.drawTableau.forEach((group, groupIndex) => {
+          group.forEach((pos, posIndex) => {
+            if (pos.name !== 'BYE') {
+              group[posIndex] =
+                this.getSpecialDrawItem('', this.DRAWTABLE, group, groupIndex)
             }
-         })
+          })
         })
       }
+    },
+    mapToEmptyItem (group, groupIndex) {
+      group.map(p => {
+            if (p.name === 'BYE') {
+              p
+            } else {
+              this.getSpecialDrawItem('', this.DRAWTABLE, group, groupIndex)
+            }
+         })
     },
     resetDrawTableauPos () {
       this.drawTableau.forEach((group, groupIndex) => {
@@ -368,8 +416,9 @@ export default {
     moreSeeds () {
       if (!this.moreSeedsDisabled()) {
         if (this.nbrSeeds === 0) {
+          this.setDrawParticipants()
           this.nbrSeeds = 2
-        } else  if (this.currentContestType == 'KO') {
+        } else if (this.currentContestType === 'KO') {
           this.nbrSeeds *= 2
         } else {
           this.nbrSeeds += 1
@@ -382,13 +431,13 @@ export default {
       if (!this.lessSeedsDisabled()) {
         if (this.nbrSeeds === 2) {
           this.nbrSeeds = 0
-        } else if (this.currentContestType == 'KO') {
+        } else if (this.currentContestType === 'KO') {
           this.nbrSeeds /= 2
         } else {
           this.nbrSeeds -= 1
         }
         this.resetParticipantsPos(this.nbrSeeds)
-        this.resetDrawTableau()
+        this.setDrawTableau()
       }
     },
     //
@@ -417,8 +466,8 @@ export default {
         }
         this.resetParticipantsPos(this.nbrSeeds)
         this.drawTableau.pop()
-        if (this.drawTableau.length > this.nbrSeeds) {
-          this.nbrSeeds = this.drawTableau.length
+        if (this.drawTableau.length < this.nbrSeeds) {
+          this.lessSeeds()
         }
         this.$store.dispatch('loadEmptyDraw', this.emptyDrawParams())
       }
