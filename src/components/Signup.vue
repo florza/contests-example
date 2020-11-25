@@ -13,7 +13,7 @@
       </b-alert>
     </div>
 
-    <b-form @submit.prevent="signup">
+    <b-form @submit.prevent="signupUser">
 
       <b-form-group for="username" label="Username">
         <b-form-input id="username" type="text" placeholder="myusername"
@@ -32,7 +32,7 @@
         ></b-form-input>
       </b-form-group>
 
-      <b-button type="submit" variant="primary" to="/contests">
+      <b-button type="submit" variant="primary">
         Sign Up
       </b-button>
     </b-form>
@@ -54,7 +54,7 @@ export default {
     }
   },
   methods: {
-    signup () {
+    signupUser () {
       this.callAxiosSignInUp('/signup',
         { username: this.username,
           password: this.password,

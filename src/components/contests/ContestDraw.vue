@@ -20,6 +20,7 @@
           <span class="float-right">
             <b-button v-on:click="callConfirmed('save')"
               variant="primary"
+              class="btn-lg"
               v-bind:disabled="currentContest.has_started"
             >
               {{ drawParticipantsEmpty() ? 'Save draw' : 'Create draw'}}
@@ -49,16 +50,17 @@
           <p>
             Manual (unrestricted) draw:
             <ul>
+              <li>
+                Keep the number of seeds at zero
+              </li>
               <li v-if="currentContestType == 'Groups'">
-                Define number and sizes of groups with the +/- buttons
-              <li v-else>
-                Eventually move BYE positions if the given standard position do not fit
+                Define the number and sizes of groups with the +/- buttons
+              <!-- <li v-else>
+                Eventually move BYE positions if the given standard position do not fit -->
               </li>
               <li>
                 Drag some or all participants to the desired positions
               </li>
-              <li>
-                Keep the number of seeds at zero
               <li>
                 Create a draw which will randomly fill the remaining participants into the empty slots
               </li>
@@ -85,91 +87,96 @@
       </b-col>
 
       <b-col>
-        <div v-if="drawTableau[0]">
-          <span v-if="currentContestType == 'Groups'">
-            <base-incrementor
-              v-bind:value="nbrGroups + ' group(s)'"
-              v-bind:decrement="lessGroups"
-              v-bind:increment="moreGroups"
-              v-bind:decrementDisabled="lessGroupsDisabled()"
-              v-bind:incrementDisabled="moreGroupsDisabled()"
-            ></base-incrementor>
-          </span>
-          <span class="float-right">
-            <!--
-            <b-button v-on:click="saveDraw" variant="primary">
-              Save manual draw
-            </b-button>
-            -->
-            <b-button v-on:click="callConfirmed('delete')"
-              variant="danger"
-              v-bind:disabled="currentContest.has_started"
-            >
-              Delete draw
-            </b-button>
-          </span>
-        </div>
-        <div v-for="groupNr in nbrGroups"
-          v-bind:key="groupNr"
-          class="mb-5 border border-secondary"
-        >
-          <b-table-simple outlined class="mb-0">
-            <b-thead>
-              <b-th colspan="1">
-                <h5>
-                  <span v-if="currentContestType == 'KO'">
-                    Knockout tableau
-                  </span>
-                  <span v-if="currentContestType == 'Groups'">
-                    Group {{ groupNr }}
-                  </span>
-                  <span v-if="currentContestType == 'Groups' && nbrGroups > 1"
-                    class="float-right"
-                  >
-                    <base-incrementor
-                      v-bind:value="String(drawTableau[groupNr - 1] ? drawTableau[groupNr - 1].length : 0)"
-                      v-bind:param="groupNr - 1"
-                      v-bind:decrement="smallerGroup"
-                      v-bind:increment="biggerGroup"
-                      v-bind:decrementDisabled="smallerGroupDisabled(groupNr - 1)"
-                      v-bind:incrementDisabled="biggerGroupDisabled(groupNr - 1)"
-                    ></base-incrementor>
-                  </span>
-                </h5>
-              </b-th>
-            </b-thead>
-            <b-tbody>
-              <draggable
-                v-model="drawTableau[groupNr - 1]"
-                draggable=".item"
-                group="draw"
-                filter=".fixed"
-                ghost-class="drag-target"
-                v-bind:disabled="nbrSeeds > 0"
-                v-bind:move="handleMove"
-                v-on:end="handleDragEnd"
+        <div class="clearfix">
+          <div v-if="drawTableau[0]">
+            <span v-if="currentContestType == 'Groups'">
+              <base-incrementor
+                v-bind:value="nbrGroups + ' group(s)'"
+                v-bind:decrement="lessGroups"
+                v-bind:increment="moreGroups"
+                v-bind:decrementDisabled="lessGroupsDisabled()"
+                v-bind:incrementDisabled="moreGroupsDisabled()"
+              ></base-incrementor>
+            </span>
+            <span class="float-right">
+              <!--
+              <b-button v-on:click="saveDraw" variant="primary">
+                Save manual draw
+              </b-button>
+              -->
+              <b-button v-on:click="callConfirmed('delete')"
+                variant="danger"
+                class="btn-lg"
+                v-bind:disabled="currentContest.has_started"
               >
-                <b-tr
-                  v-for="(pos, dIndex) in drawTableau[groupNr - 1]"
-                  v-bind:key="pos.id"
-                  v-bind:id="`d-${groupNr - 1}-${dIndex}`"
-                  v-bind:class="{ 'item': nbrSeeds === 0 &&
-                                    !currentContest.has_started,
-                                  'bye': pos.name === 'BYE',
-                                  'fixed': nbrSeeds > 0 || pos.fixed === true,
-                                  'drag-from': pos.id === fromElement.id,
-                                  'drag-to': pos.id === toElement.id }"
+                Delete draw
+              </b-button>
+            </span>
+          </div>
+        </div>
+        <div>
+          <div v-for="groupNr in nbrGroups"
+            v-bind:key="groupNr"
+            class="mb-5 border border-secondary"
+          >
+            <b-table-simple outlined class="mb-0">
+              <b-thead>
+                <b-th colspan="1">
+                  <h5>
+                    <span v-if="currentContestType == 'KO'">
+                      Knockout tableau
+                    </span>
+                    <span v-if="currentContestType == 'Groups'">
+                      Group {{ groupNr }}
+                    </span>
+                    <span v-if="currentContestType == 'Groups' && nbrGroups > 1"
+                      class="float-right"
+                    >
+                      <base-incrementor
+                        v-bind:value="String(drawTableau[groupNr - 1] ? drawTableau[groupNr - 1].length : 0)"
+                        v-bind:param="groupNr - 1"
+                        v-bind:decrement="smallerGroup"
+                        v-bind:increment="biggerGroup"
+                        v-bind:decrementDisabled="smallerGroupDisabled(groupNr - 1)"
+                        v-bind:incrementDisabled="biggerGroupDisabled(groupNr - 1)"
+                      ></base-incrementor>
+                    </span>
+                  </h5>
+                </b-th>
+              </b-thead>
+              <b-tbody>
+                <draggable
+                  v-model="drawTableau[groupNr - 1]"
+                  draggable=".item"
+                  group="draw"
+                  filter=".fixed"
+                  ghost-class="drag-target"
+                  v-bind:disabled="nbrSeeds > 0"
+                  v-bind:move="handleMove"
+                  v-on:end="handleDragEnd"
                 >
-                  <b-td style="width: 3em" class="text-center">
-                    {{ dIndex + 1}}
-                  </b-td>
-                  <b-td style="width: 100%;">
-                    {{ pos.name }}
-                  </b-td>
-                </b-tr>
-              </draggable>
-            </b-tbody>
-          </b-table-simple>
+                  <b-tr
+                    v-for="(pos, dIndex) in drawTableau[groupNr - 1]"
+                    v-bind:key="pos.id"
+                    v-bind:id="`d-${groupNr - 1}-${dIndex}`"
+                    v-bind:class="{ 'item': nbrSeeds === 0 &&
+                                      !currentContest.has_started,
+                                    'bye': pos.name === 'BYE',
+                                    'fixed': nbrSeeds > 0 || pos.fixed,
+                                    'drag-from': pos.id === fromElement.id,
+                                    'drag-to': pos.id === toElement.id }"
+                  >
+                    <b-td style="width: 3em" class="text-center">
+                      {{ dIndex + 1}}
+                    </b-td>
+                    <b-td style="width: 100%;">
+                      {{ pos.name }}
+                    </b-td>
+                  </b-tr>
+                </draggable>
+              </b-tbody>
+            </b-table-simple>
+          </div>
         </div>
       </b-col>
     </b-row>
@@ -233,7 +240,7 @@ export default {
     }
   },
   methods: {
-    // actualize draw tables
+    // actualize draw tables for new contest or new empty tableau
     setDrawTables () {
       this.setDrawParticipants()
       this.setDrawTableau()
@@ -258,8 +265,9 @@ export default {
         table: table,
         group: group,
         pos: i,
-        seed: pos.seed_position, // i < this.nbrSeeds ? i + 1 : null,
-        seedsuffix: pos.seed_position ? ` (${pos.seed_position})` : ''
+        seed: pos.seed_position <= this.nbrSeeds ? pos.seed_position : null,
+        seedsuffix:
+          pos.seed_position <= this.nbrSeeds ? ` (${pos.seed_position})` : ''
       }
     },
     // add placeholder participant as target for draggable component
@@ -295,21 +303,22 @@ export default {
         this.drawParticipants.splice(ppantPos, 1)
       }
     },
-    resetParticipantsSeed (nbrSeeds) {
-      this.drawParticipants.forEach(function (p, i) {
-        p.seed = i < nbrSeeds ? i + 1 : null,
-        p.seedsuffix = i < nbrSeeds ? ` (${i + 1})` : ''
-      })
-      return true
+    resetParticipantsSeeds () {
+      for (let index = 0; index < this.drawParticipants.length; index++) {
+        let p = this.drawParticipants[index];
+        p.seed = index < this.nbrSeeds ? index + 1 : null,
+        p.seedsuffix = index < this.nbrSeeds ? ` (${index + 1})` : ''
+      }
     },
-    resetParticipantsPos (nbrSeeds) {
-      this.drawParticipants.forEach(function (p, i) {
+    resetParticipantsPos () {
+      for (let index = 0; index < this.drawParticipants.length; index++) {
+        let p = this.drawParticipants[index];
         p.table = 'P'
         p.group = null
-        p.pos = p.pos === -1 ? -1 : i
-        p.seed = i < nbrSeeds ? i + 1 : null,
-        p.seedsuffix = i < nbrSeeds ? ` (${i + 1})` : ''
-      })
+        p.pos = p.pos === -1 ? -1 : index
+        p.seed = index < this.nbrSeeds ? index + 1 : null
+        p.seedsuffix = index < this.nbrSeeds ? ` (${index + 1})` : ''
+      }
       this.expandEmptyDrawParticipants()
     },
     //
@@ -345,7 +354,7 @@ export default {
         table: table,
         group: group,
         pos: index,
-        fixed: name === ''
+        fixed: true // name === '' || name === 'BYE'
       }
     },
     mapParticipantToDraw (pId, groupIndex, posIndex) {
@@ -371,33 +380,28 @@ export default {
       }
       return drawItem
     },
-    resetDrawTableau () {
-      if (this.nbrSeeds > 0) {
-        this.drawTableau.forEach((group, groupIndex) => {
-          group.forEach((pos, posIndex) => {
-            if (pos.name !== 'BYE') {
-              group[posIndex] =
-                this.getSpecialDrawItem('', this.DRAWTABLE, group, groupIndex)
-            }
-          })
-        })
+    // set all drawTableau items to empty positions or BYEs
+    resetDrawTableau (oldNbrSeeds = 0) {
+      if (this.nbrSeeds === 0 && oldNbrSeeds === 0) {
+        return
+      }
+      for (let gIndex = 0; gIndex < this.drawTableau.length; gIndex++) {
+        let group = this.drawTableau[gIndex]
+        for (let pIndex = 0; pIndex < group.length; pIndex++) {
+          if (group[pIndex].name !== 'BYE') {
+            group[pIndex] =
+              this.getSpecialDrawItem('', this.DRAWTABLE, group, gIndex)
+          }
+        }
       }
     },
-    mapToEmptyItem (group, groupIndex) {
-      group.map(p => {
-            if (p.name === 'BYE') {
-              p
-            } else {
-              this.getSpecialDrawItem('', this.DRAWTABLE, group, groupIndex)
-            }
-         })
-    },
+    // Correct positions of moved items in drawTableau
     resetDrawTableauPos () {
       this.drawTableau.forEach((group, groupIndex) => {
-        group.forEach((p, i) => {
-          p.table = 'D'
-          p.group = groupIndex
-          p.pos = i
+        group.forEach((pos, posIndex) => {
+          pos.table = 'D'
+          pos.group = groupIndex
+          pos.pos = posIndex
         })
       })
     },
@@ -423,12 +427,13 @@ export default {
         } else {
           this.nbrSeeds += 1
         }
-        this.resetParticipantsPos(this.nbrSeeds)
+        this.resetParticipantsSeeds()
         this.resetDrawTableau()
       }
     },
     lessSeeds () {
       if (!this.lessSeedsDisabled()) {
+        const oldNbrSeeds = this.nbrSeeds
         if (this.nbrSeeds === 2) {
           this.nbrSeeds = 0
         } else if (this.currentContestType === 'KO') {
@@ -436,8 +441,8 @@ export default {
         } else {
           this.nbrSeeds -= 1
         }
-        this.resetParticipantsPos(this.nbrSeeds)
-        this.setDrawTableau()
+        this.resetParticipantsSeeds()
+        this.resetDrawTableau(oldNbrSeeds)
       }
     },
     //
@@ -464,10 +469,11 @@ export default {
           const item = this.drawTableau[this.nbrGroups].shift()
           this.moveItemToParticipants(item)
         }
-        this.resetParticipantsPos(this.nbrSeeds)
         this.drawTableau.pop()
+
         if (this.drawTableau.length < this.nbrSeeds) {
-          this.lessSeeds()
+          this.nbrSeeds =
+            this.drawTableau.length > 1 ? this.drawTableau.length : 0
         }
         this.$store.dispatch('loadEmptyDraw', this.emptyDrawParams())
       }
@@ -484,24 +490,35 @@ export default {
           (this.drawTableau.length - 1) * 2)
     },
     smallerGroup (group) {
-      if (!this.smallerGroupDisabled(group)) {
-        const item = this.drawTableau[group].pop()
-        this.moveItemToParticipants(item)
-        this.resetParticipantsPos(this.nbrSeeds)
+      if (this.smallerGroupDisabled(group)) {
+        return
+      }
 
-        const biggerGroup = (group + 1) % this.nbrGroups
-        this.drawTableau[biggerGroup].push(this.getSpecialDrawItem(
-          '', this.DRAWTABLE, biggerGroup, this.drawTableau[biggerGroup].length))
+      const item = this.drawTableau[group].pop()
+      this.moveItemToParticipants(item)
+      this.resetParticipantsPos()
+
+      const biggerGroup = (group + 1) % this.nbrGroups
+      this.drawTableau[biggerGroup].push(this.getSpecialDrawItem(
+        '', this.DRAWTABLE, biggerGroup, this.drawTableau[biggerGroup].length))
+
+      if (this.nbrSeeds > 0) {
         this.resetDrawTableau()
       }
     },
     biggerGroup (group) {
-      if (!this.biggerGroupDisabled(group)) {
-        this.drawTableau[group].push(this.getSpecialDrawItem(
-          '', this.DRAWTABLE, group, this.drawTableau[group].length))
-        this.reduceNextPossibleGroup(group, 1)
-        this.resetDrawTableau()
+      if (this.biggerGroupDisabled(group)) {
+        return
       }
+      // if (this.nbrSeeds > 0) {
+      //   this.resetDrawTableau()
+      //   return
+      // }
+
+      this.drawTableau[group].push(this.getSpecialDrawItem(
+        '', this.DRAWTABLE, group, this.drawTableau[group].length))
+      this.reduceNextPossibleGroup(group, 1)
+      this.resetDrawTableau()
     },
     reduceNextPossibleGroup (group, nbr = 1) {
       for (let nextGroup = (group + 1) % this.nbrGroups;
@@ -513,7 +530,8 @@ export default {
           nbr -= 1
         }
       }
-      this.resetParticipantsPos(this.nbrSeeds)
+      this.resetParticipantsPos()
+      this.resetDrawTableau()
     },
     //
     // Process save and delete of draws
@@ -640,7 +658,7 @@ export default {
           this.moveItemToParticipants(from, to.pos)
         }
       }
-      this.resetParticipantsPos(this.nbrSeeds)
+      this.resetParticipantsPos()
       this.resetDrawTableauPos()
       this.fromElement = false
       this.toElement = false

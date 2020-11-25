@@ -3,6 +3,7 @@
     <b-button
       v-on:click="decrement(param)"
         variant="secondary"
+        class="btn btn-sm"
         v-bind:disabled="decrementDisabled"
     >
       <b-icon icon="dash-circle"></b-icon>
@@ -10,6 +11,7 @@
     {{ value }}
     <b-button v-on:click="increment(param)"
       variant="secondary"
+      class="btn btn-sm"
       v-bind:disabled="incrementDisabled"
     >
       <b-icon icon="plus-circle"></b-icon>

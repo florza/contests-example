@@ -7,7 +7,7 @@ The app provides
 - a minimal user handling to register, login, logout and refresh users (contests managers) and their authentication
 - a login for participants of contests with different tokens that give access to read a specific contest or to edit match results of all matches of a contests or of one participants matches
 - forms to manage contest and participants by the contest manager
-- a form to handle complete or partial manual draws and let them be completed by the backend
+- a form to handle complete or partial manual draws and let them be completed by the backend,  as well as completely automatic seeded draws
 - views of the drawn tableau, generated matches and ranking lists
 - a form to add or change the result of matches
 
