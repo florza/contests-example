@@ -138,7 +138,9 @@ export default new Vuex.Store({
       console.log('Start loading current Contest')
       const id = this.getters.allContests[0].id
       Vue.$axios.get(
-        `/api/v1/contests/${id}?include=participants,matches`)
+        `/api/v1/contests/${id}?include=participants,matches` +
+          '&extra_fields[contests]=token_write,token_read' +
+          '&extra_fields[participants]=token_write')
         .then(response => {
           commit('setCurrentContest', response.data.data)
           commit('setCurrentParticipants', response.data.included || [])

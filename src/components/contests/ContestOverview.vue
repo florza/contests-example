@@ -17,11 +17,11 @@
         </b-tr>
         <b-tr v-if="this.signinType() === 'user'">
           <b-td>Contestkey (read-only):</b-td>
-          <b-td>{{ currentContest.token_read }}</b-td>
+          <b-td>{{ getLinkName(currentContest.token_read) }}</b-td>
         </b-tr>
         <b-tr v-if="this.signinType() === 'user'">
           <b-td>Contestkey (edit all results):</b-td>
-          <b-td>{{ currentContest.token_write }}</b-td>
+          <b-td>{{ getLinkName(currentContest.token_write) }}</b-td>
         </b-tr>
         <b-tr>
           <b-td>Date of draw:</b-td>
@@ -83,6 +83,11 @@ export default {
           params.points.loss + ' points'
       }
       return sets + tie + points
+    },
+    getLinkName (token) {
+      // return window.location.origin + `?contestkey=${token}`
+      // At the moment we show only the key, to insert into the login form
+      return token
     }
   }
 }
